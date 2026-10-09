@@ -8,7 +8,7 @@ L’objectif est de comparer des données provenant de différentes sources, com
 
 Une vidéo de présentation du projet sera ajoutée au dépôt GitHub :
 
-[Voir la vidéo de démonstration](./demo/video-demo.mp4)
+[Voir la vidéo de démonstration]((https://github.com/sltcdyna/detecteur-contradictions/issues/1#issue-5785635514))
 
 ## Ce que fait le projet
 
