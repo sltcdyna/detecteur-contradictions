@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Sentinel</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --color-1: #7E7BBB;
+    --color-2: #BB7BB8;
+    --color-3: #B8BB7B;
+    --color-4: #7BBB7E;
+    --complement-ink: #17172A;
+    --complement-panel: #24233D;
+    --complement-panel-alt: #302E50;
+    --complement-line: #4A4772;
+    --complement-text: #F5F3FF;
+    --complement-muted: #C7C3DF;
+    --fond: var(--complement-ink);
+    --blanc: var(--complement-panel);
+    --texte: var(--complement-text);
+    --secondaire: var(--complement-muted);
+    --bleu: var(--color-1);
+    --bordure: var(--complement-line);
+    --rouge: var(--color-2);
+    --vert: var(--color-4);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--fond);
+    color: var(--texte);
+    perspective: 1400px;
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+.application {
+    display: flex;
+    min-height: 100vh;
+}
+
+.barre-laterale {
+    width: 245px;
+    flex-shrink: 0;
+    padding: 26px 16px;
+    background: var(--complement-panel);
+    color: white;
+    box-shadow: 12px 0 35px rgba(10, 8, 32, 0.35);
+    z-index: 2;
+}
+
+.logo { font-size: 23px; font-weight: bold; }
+
+.sous-logo {
+    margin: 8px 0 36px;
+    color: var(--complement-muted);
+    font-size: 13px;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.menu button {
+    width: 100%;
+    padding: 13px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--complement-text);
+    text-align: left;
+    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.menu button:hover,
+.menu button.actif {
+    background: var(--complement-panel-alt);
+    color: var(--complement-text);
+    transform: translateX(5px);
+    box-shadow: -4px 0 0 var(--color-1), 0 8px 18px rgba(10, 8, 32, 0.2);
+}
+
+.contenu {
+    flex: 1;
+    min-width: 0;
+    padding: 32px;
+    background:
+        radial-gradient(circle at 85% 0%, rgba(126, 123, 187, 0.2), transparent 32%),
+        var(--fond);
+}
+
+.entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.entete h1 {
+    margin: 0 0 7px;
+    font-size: 28px;
+}
+
+.entete p,
+.description {
+    color: var(--secondaire);
+    line-height: 1.6;
+}
+
+.entete p { margin: 0; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+.grille-cartes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.carte,
+.panneau {
+    position: relative;
+    padding: 22px;
+    border: 1px solid var(--bordure);
+    border-radius: 14px;
+    background: var(--blanc);
+    box-shadow: 0 3px 12px rgba(20, 35, 70, 0.03);
+    margin-bottom: 22px;
+    transform-style: preserve-3d;
+    transition:
+        transform 220ms ease,
+        box-shadow 220ms ease,
+        border-color 220ms ease;
+    will-change: transform;
+}
+
+.carte::after,
+.panneau::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    content: "";
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.09),
+        transparent 38%,
+        rgba(126, 123, 187, 0.07)
+    );
+    opacity: 0;
+    transition: opacity 220ms ease;
+}
+
+.carte:hover,
+.panneau:hover {
+    border-color: var(--color-1);
+    box-shadow:
+        0 18px 35px rgba(10, 8, 32, 0.34),
+        0 0 0 1px rgba(126, 123, 187, 0.12);
+}
+
+.carte:hover::after,
+.panneau:hover::after {
+    opacity: 1;
+}
+
+.libelle {
+    color: var(--secondaire);
+    font-size: 14px;
+}
+
+.nombre {
+    margin-top: 12px;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.panneau h2 {
+    margin-top: 0;
+    font-size: 19px;
+}
+
+.ligne-titre {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.ligne-titre h2 { margin: 0; }
+
+.action,
+.action-secondaire {
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.action {
+    border: 0;
+    background: var(--bleu);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 6px 0 #6966A5, 0 10px 20px rgba(126, 123, 187, 0.2);
+    transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.action:hover { background: #6966A5; }
+
+.action:hover,
+.action-secondaire:hover {
+    transform: translateY(-2px);
+}
+
+.action:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #6966A5;
+}
+
+.action-secondaire {
+    border: 1px solid var(--bordure);
+    background: var(--complement-panel-alt);
+    color: var(--texte);
+    transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.action-secondaire:hover {
+    border-color: var(--color-1);
+    background: var(--complement-panel-alt);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.filtres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.filtres input,
+.filtres select {
+    min-width: 180px;
+    max-width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    background: #111122;
+    color: var(--texte);
+}
+
+.table-conteneur { overflow-x: auto; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 13px 12px;
+    border-bottom: 1px solid var(--bordure);
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: var(--complement-panel-alt);
+    color: var(--complement-text);
+}
+
+td { overflow-wrap: anywhere; }
+
+/* Badges de gravité */
+.badge-gravite {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.gravite-elevee {
+    background: #D5D2F2;
+    color: #302A57;
+}
+
+.gravite-moyenne {
+    background: #E5CBE3;
+    color: #5A2857;
+}
+
+.gravite-verification {
+    background: #D8F0D9;
+    color: #285B31;
+}
+
+.message {
+    margin: 12px 0 0;
+    font-size: 14px;
+}
+
+.erreur { color: var(--rouge); }
+.succes { color: var(--vert); }
+.info { color: var(--secondaire); }
+
+.vide {
+    padding: 30px 12px;
+    color: var(--secondaire);
+    text-align: center;
+}
+
+.statut-api {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--secondaire);
+}
+
+.point {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--color-3);
+}
+
+.point.ok { background: var(--vert); }
+.point.ko { background: var(--rouge); }
+
+.graphique-conteneur {
+    position: relative;
+    max-width: 460px;
+    height: 300px;
+    margin: auto;
+}
+
+.grille-graphiques {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.grille-graphiques .panneau { margin-bottom: 0; }
+
+.graphique-petit {
+    position: relative;
+    height: 260px;
+}
+
+canvas { max-width: 100%; }
+
+.graphique-petit,
+.graphique-conteneur {
+    transform: translateZ(18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+.graphique-large { grid-column: 1 / -1; }
+
+.legende-graphique {
+    margin: -8px 0 14px;
+    color: var(--secondaire);
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .application { flex-direction: column; }
+    .barre-laterale { width: 100%; }
+    .menu { flex-direction: row; flex-wrap: wrap; }
+    .menu button { width: auto; }
+    .contenu { padding: 20px; }
+    .grille-cartes { grid-template-columns: 1fr; }
+    .grille-graphiques { grid-template-columns: 1fr; }
+    .graphique-large { grid-column: auto; }
+}
+</style>
+</head>
+
+<body>
+<div class="application">
+
+    <aside class="barre-laterale">
+        <div class="logo">Data Sentinel</div>
+        <div class="sous-logo">Détection des anomalies</div>
+
+        <nav class="menu">
+            <button class="actif" data-page="accueil"
+                onclick="afficherPage('accueil')">Tableau de bord</button>
+
+            <button data-page="anomalies"
+                onclick="afficherPage('anomalies')">Anomalies</button>
+
+            <button data-page="historique"
+                onclick="afficherPage('historique')">Historique</button>
+
+            <button data-page="sources"
+                onclick="afficherPage('sources')">Sources de données</button>
+        </nav>
+    </aside>
+
+    <main class="contenu">
+
+        <header class="entete">
+            <div>
+                <h1 id="titre-page">Tableau de bord</h1>
+                <p>Surveillez les incohérences entre vos sources de données.</p>
+            </div>
+
+            <div class="statut-api">
+                <span id="point-api" class="point"></span>
+                <span id="texte-api">Vérification de l'API...</span>
+            </div>
+        </header>
+
+        <!-- TABLEAU DE BORD -->
+        <section id="page-accueil" class="page active">
+
+            <div class="panneau">
+                <h2>Répartition des anomalies</h2>
+                <p class="description" id="etat-graphique">
+                    Initialisation du graphique...
+                </p>
+
+                <div class="graphique-conteneur">
+                    <canvas id="graphique-anomalies"></canvas>
+                </div>
+            </div>
+
+            <div class="grille-graphiques">
+                <div class="panneau">
+                    <div class="ligne-titre">
+                        <h2>Anomalies par gravité</h2>
+                    </div>
+                    <p class="legende-graphique">Priorité estimée selon le type détecté.</p>
+                    <div class="graphique-petit">
+                        <canvas id="graphique-gravite"></canvas>
+                    </div>
+                </div>
+
+                <div class="panneau">
+                    <div class="ligne-titre">
+                        <h2>Anomalies par type</h2>
+                    </div>
+                    <p class="legende-graphique">Répartition des contrôles déclenchés.</p>
+                    <div class="graphique-petit">
+                        <canvas id="graphique-type"></canvas>
+                    </div>
+                </div>
+
+                <div class="panneau graphique-large">
+                    <div class="ligne-titre">
+                        <h2>Évolution des anomalies</h2>
+                    </div>
+                    <p class="legende-graphique">Comparaison des analyses enregistrées dans l’API.</p>
+                    <div class="graphique-petit">
+                        <canvas id="graphique-evolution"></canvas>
+                    </div>
+                </div>
+
+                <div class="panneau">
+                    <div class="ligne-titre">
+                        <h2>Champs les plus touchés</h2>
+                    </div>
+                    <p class="legende-graphique">Champs qui concentrent le plus d’anomalies.</p>
+                    <div class="graphique-petit">
+                        <canvas id="graphique-champs"></canvas>
+                    </div>
+                </div>
+
+                <div class="panneau">
+                    <div class="ligne-titre">
+                        <h2>Comparaison des sources</h2>
+                    </div>
+                    <p class="legende-graphique">Sources impliquées dans les anomalies.</p>
+                    <div class="graphique-petit">
+                        <canvas id="graphique-sources"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grille-cartes">
+                <div class="carte">
+                    <div class="libelle">Nombre d'analyses</div>
+                    <div class="nombre" id="stat-analyses">0</div>
+                </div>
+
+                <div class="carte">
+                    <div class="libelle">Anomalies détectées</div>
+                    <div class="nombre" id="stat-anomalies">0</div>
+                </div>
+
+                <div class="carte">
+                    <div class="libelle">Dernière analyse</div>
+                    <div class="nombre" id="stat-derniere"
+                         style="font-size:18px">Aucune</div>
+                </div>
+            </div>
+
+            <div class="panneau">
+                <div class="ligne-titre">
+                    <h2>Lancer une analyse</h2>
+                    <button class="action" id="bouton-analyse"
+                        onclick="lancerAnalyse()">Lancer l'analyse</button>
+                </div>
+
+                <p class="description">
+                    Comparez les données des différentes sources pour détecter
+                    les incohérences.
+                </p>
+
+                <p id="message-analyse" class="message"></p>
+            </div>
+
+            <div class="panneau">
+                <div class="ligne-titre">
+                    <h2>Dernières analyses</h2>
+                    <button class="action-secondaire"
+                        onclick="afficherPage('historique')">
+                        Voir l'historique
+                    </button>
+                </div>
+
+                <div id="resume-historique" class="vide">
+                    Chargement...
+                </div>
+            </div>
+        </section>
+
+        <!-- ANOMALIES -->
+        <section id="page-anomalies" class="page">
+            <div class="panneau">
+
+                <div class="ligne-titre">
+                    <h2>Anomalies de l'analyse sélectionnée</h2>
+
+                    <button class="action" id="bouton-export-csv"
+                        onclick="exporterCSV()" disabled>
+                        Exporter CSV
+                    </button>
+                </div>
+
+                <p id="analyse-active" class="description">
+                    Sélectionnez une analyse.
+                </p>
+
+                <p id="message-export" class="message"></p>
+
+                <div class="filtres">
+                    <input id="recherche-anomalie" type="search"
+                        placeholder="Rechercher une anomalie..."
+                        oninput="filtrerAnomalies()">
+
+                    <select id="filtre-type" onchange="filtrerAnomalies()">
+                        <option value="">Tous les types</option>
+                    </select>
+                </div>
+
+                <div id="tableau-anomalies" class="table-conteneur">
+                    <div class="vide">Aucune analyse sélectionnée.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HISTORIQUE -->
+        <section id="page-historique" class="page">
+            <div class="panneau">
+                <div class="ligne-titre">
+                    <h2>Historique des analyses</h2>
+                    <button class="action-secondaire"
+                        onclick="chargerHistorique()">Actualiser</button>
+                </div>
+
+                <div id="tableau-historique" class="table-conteneur">
+                    <div class="vide">Chargement...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SOURCES -->
+        <section id="page-sources" class="page">
+            <div class="panneau">
+                <h2>Sources de données</h2>
+
+                <p class="description">
+                    Fichiers utilisés dans le dossier <code>donnees/</code>.
+                </p>
+
+                <div id="tableau-sources" class="table-conteneur">
+                    <div class="vide">Chargement des sources...</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+"use strict";
+
+const API = "http://127.0.0.1:8000";
+
+let historique = [];
+let toutesLesAnomalies = [];
+let analyseSelectionnee = null;
+let graphiqueAnomalies = null;
+const graphiquesStatistiques = {};
+let numeroRequeteAnomalies = 0;
+
+// --------------------------------------------------
+// REQUÊTES API
+// --------------------------------------------------
+
+async function requete(url, options = {}) {
+    const reponse = await fetch(`${API}${url}`, options);
+
+    if (!reponse.ok) {
+        let detail = `Erreur HTTP ${reponse.status}`;
+
+        try {
+            const donnees = await reponse.json();
+            detail = donnees.detail || detail;
+        } catch (_) {}
+
+        throw new Error(detail);
+    }
+
+    if (reponse.status === 204) return null;
+
+    return reponse.json();
+}
+
+// --------------------------------------------------
+// OUTILS
+// --------------------------------------------------
+
+function echapper(valeur) {
+    return String(valeur ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function obtenirId(analyse) {
+    return analyse?.id
+        ?? analyse?.analyse_id
+        ?? analyse?.id_analyse
+        ?? null;
+}
+
+function obtenirDate(analyse) {
+    return analyse?.date_analyse
+        ?? analyse?.date
+        ?? analyse?.created_at
+        ?? analyse?.createdAt
+        ?? "Date inconnue";
+}
+
+function obtenirNombreAnomalies(analyse) {
+    return Number(
+        analyse?.nombre_anomalies
+        ?? analyse?.nb_anomalies
+        ?? analyse?.total_anomalies
+        ?? analyse?.nombre
+        ?? 0
+    );
+}
+
+function obtenirListeAnomalies(resultat) {
+    if (Array.isArray(resultat)) return resultat;
+    if (Array.isArray(resultat?.anomalies)) return resultat.anomalies;
+    if (Array.isArray(resultat?.resultats)) return resultat.resultats;
+    return [];
+}
+
+function obtenirTypeAnomalie(anomalie) {
+    return anomalie.type
+        ?? anomalie.type_anomalie
+        ?? anomalie.categorie
+        ?? anomalie.regle
+        ?? "Non précisé";
+}
+
+// --------------------------------------------------
+// GRAVITÉ DES ANOMALIES
+// --------------------------------------------------
+
+function obtenirGravite(anomalie) {
+    const type = String(obtenirTypeAnomalie(anomalie)).toUpperCase();
+
+    if ([
+        "CONTRADICTION_POTENTIELLE",
+        "ENREGISTREMENT_ABSENT",
+        "IDENTIFIANT_MANQUANT"
+    ].includes(type)) {
+        return {
+            libelle: "Élevée",
+            classe: "gravite-elevee"
+        };
+    }
+
+    if ([
+        "DOUBLON",
+        "VALEUR_MANQUANTE"
+    ].includes(type)) {
+        return {
+            libelle: "Moyenne",
+            classe: "gravite-moyenne"
+        };
+    }
+
+    return {
+        libelle: "À vérifier",
+        classe: "gravite-verification"
+    };
+}
+
+// --------------------------------------------------
+// NAVIGATION
+// --------------------------------------------------
+
+function afficherPage(nom) {
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
+
+    document.querySelectorAll(".menu button").forEach(bouton => {
+        bouton.classList.remove("actif");
+    });
+
+    document.getElementById(`page-${nom}`)?.classList.add("active");
+
+    document.querySelector(`[data-page="${nom}"]`)
+        ?.classList.add("actif");
+
+    const titres = {
+        accueil: "Tableau de bord",
+        anomalies: "Anomalies détectées",
+        historique: "Historique des analyses",
+        sources: "Sources de données"
+    };
+
+    document.getElementById("titre-page").textContent =
+        titres[nom] || "Data Sentinel";
+
+    if (nom === "anomalies") chargerAnomalies();
+    if (nom === "historique") chargerHistorique();
+    if (nom === "sources") chargerSources();
+}
+
+// --------------------------------------------------
+// ÉTAT DE L'API
+// --------------------------------------------------
+
+async function verifierAPI() {
+    const point = document.getElementById("point-api");
+    const texte = document.getElementById("texte-api");
+
+    try {
+        const reponse = await fetch(`${API}/`);
+
+        if (!reponse.ok) throw new Error("API indisponible");
+
+        point.className = "point ok";
+        texte.textContent = "API connectée";
+    } catch (_) {
+        point.className = "point ko";
+        texte.textContent = "API inaccessible";
+    }
+
+}
+
+async function chargerSources() {
+    const conteneur = document.getElementById("tableau-sources");
+    if (!conteneur) return;
+
+    try {
+        const resultat = await requete("/sources");
+        const sources = Array.isArray(resultat?.sources) ? resultat.sources : [];
+
+        if (!sources.length) {
+            conteneur.innerHTML = '<div class="vide">Aucune source configurée.</div>';
+            return;
+        }
+
+        conteneur.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Logiciel / source</th>
+                        <th>Fichier</th>
+                        <th>Rôle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sources.map(source => `
+                        <tr>
+                            <td>${echapper(source.nom || "Source sans nom")}</td>
+                            <td><code>${echapper(source.fichier || "—")}</code></td>
+                            <td>Source métier comparée par le moteur d’anomalies</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>`;
+    } catch (erreur) {
+        conteneur.innerHTML =
+            `<div class="vide">Impossible de charger les sources : ${echapper(erreur.message)}</div>`;
+    }
+}
+
+// --------------------------------------------------
+// HISTORIQUE
+// --------------------------------------------------
+
+async function chargerHistorique() {
+    const tableau = document.getElementById("tableau-historique");
+    const resume = document.getElementById("resume-historique");
+
+    document.getElementById("etat-graphique").textContent =
+        "Chargement des analyses...";
+
+    try {
+        const resultat = await requete("/analyses");
+
+        historique = Array.isArray(resultat)
+            ? resultat
+            : Array.isArray(resultat?.analyses)
+                ? resultat.analyses
+                : Array.isArray(resultat?.historique)
+                    ? resultat.historique
+                    : [];
+
+        historique.sort((a, b) =>
+            Number(obtenirId(b) || 0) - Number(obtenirId(a) || 0)
+        );
+
+        afficherTableauHistorique(tableau);
+        afficherResumeHistorique(resume);
+        mettreAJourStatistiques();
+        await chargerStatistiques();
+
+        if (historique.length > 0 && obtenirId(historique[0]) !== null) {
+            await chargerAnomalies(obtenirId(historique[0]), false);
+        } else {
+            toutesLesAnomalies = [];
+            mettreAJourGraphique([]);
+            await chargerStatistiques();
+        }
+
+        async function chargerStatistiques() {
+            try {
+                const statistiques = await requete("/analyses/statistiques");
+                afficherGraphiquesStatistiques(statistiques);
+            } catch (erreur) {
+                afficherGraphiquesStatistiques(null);
+                console.error("Impossible de charger les statistiques :", erreur);
+            }
+        }
+    } catch (erreur) {
+        tableau.innerHTML =
+            `<div class="vide">Impossible de charger l'historique : ${echapper(erreur.message)}</div>`;
+
+        resume.innerHTML =
+            '<div class="vide">Impossible de charger l’historique.</div>';
+
+        document.getElementById("etat-graphique").textContent =
+            "Impossible de charger les analyses pour le graphique.";
+
+        mettreAJourGraphique([]);
+    }
+}
+
+function afficherTableauHistorique(conteneur) {
+    if (!historique.length) {
+        conteneur.innerHTML =
+            '<div class="vide">Aucune analyse enregistrée.</div>';
+        return;
+    }
+
+    conteneur.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Anomalies</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                ${historique.map(analyse => {
+                    const id = obtenirId(analyse);
+
+                    return `
+                        <tr>
+                            <td>${echapper(id ?? "—")}</td>
+                            <td>${echapper(obtenirDate(analyse))}</td>
+                            <td>${echapper(obtenirNombreAnomalies(analyse))}</td>
+                            <td>
+                                <button class="action-secondaire"
+                                    onclick="voirAnomalies(${JSON.stringify(id)})">
+                                    Voir les anomalies
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join("")}
+            </tbody>
+        </table>`;
+}
+
+function afficherResumeHistorique(conteneur) {
+    if (!historique.length) {
+        conteneur.textContent = "Aucune analyse n'a encore été lancée.";
+        return;
+    }
+
+    conteneur.innerHTML = `
+        <div class="table-conteneur">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Anomalies</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${historique.slice(0, 5).map(analyse => {
+                        const id = obtenirId(analyse);
+
+                        return `
+                            <tr>
+                                <td>${echapper(id ?? "—")}</td>
+                                <td>${echapper(obtenirDate(analyse))}</td>
+                                <td>${echapper(obtenirNombreAnomalies(analyse))}</td>
+                                <td>
+                                    <button class="action-secondaire"
+                                        onclick="voirAnomalies(${JSON.stringify(id)})">
+                                        Consulter
+                                    </button>
+                                </td>
+                            </tr>`;
+                    }).join("")}
+                </tbody>
+            </table>
+        </div>`;
+}
+
+function mettreAJourStatistiques() {
+    document.getElementById("stat-analyses").textContent =
+        historique.length;
+
+    document.getElementById("stat-anomalies").textContent =
+        historique.reduce(
+            (total, analyse) => total + obtenirNombreAnomalies(analyse),
+            0
+        );
+
+    document.getElementById("stat-derniere").textContent =
+        historique.length ? obtenirDate(historique[0]) : "Aucune";
+}
+
+// --------------------------------------------------
+// CHARGEMENT DES ANOMALIES
+// --------------------------------------------------
+
+function voirAnomalies(id) {
+    if (id === null || id === undefined) return;
+
+    afficherPage("anomalies");
+    chargerAnomalies(id);
+}
+
+async function chargerAnomalies(
+    analyseId = null,
+    afficherChargement = true
+) {
+    const numero = ++numeroRequeteAnomalies;
+
+    const tableau = document.getElementById("tableau-anomalies");
+    const description = document.getElementById("analyse-active");
+    const boutonExport = document.getElementById("bouton-export-csv");
+
+    const analyse = analyseId !== null && analyseId !== undefined
+        ? historique.find(element =>
+            String(obtenirId(element)) === String(analyseId)
+        ) || { id: analyseId }
+        : historique[0] || null;
+
+    if (!analyse || obtenirId(analyse) === null) {
+        analyseSelectionnee = null;
+        toutesLesAnomalies = [];
+        boutonExport.disabled = true;
+
+        description.textContent = "Aucune analyse disponible.";
+
+        tableau.innerHTML =
+            '<div class="vide">Lancez d’abord une analyse.</div>';
+
+        mettreAJourGraphique([]);
+        return;
+    }
+
+    const id = obtenirId(analyse);
+
+    analyseSelectionnee = id;
+    boutonExport.disabled = true;
+
+    document.getElementById("message-export").textContent = "";
+
+    description.textContent =
+        `Analyse n° ${id} — ${obtenirDate(analyse)}`;
+
+    document.getElementById("etat-graphique").textContent =
+        "Récupération des anomalies de la dernière analyse...";
+
+    if (afficherChargement) {
+        tableau.innerHTML =
+            '<div class="vide">Chargement des anomalies...</div>';
+    }
+
+    try {
+        const resultat = await requete(
+            `/analyses/${encodeURIComponent(id)}/anomalies`
+        );
+
+        if (numero !== numeroRequeteAnomalies) return;
+
+        toutesLesAnomalies = obtenirListeAnomalies(resultat);
+
+        remplirFiltresTypes();
+        mettreAJourGraphique(toutesLesAnomalies);
+        filtrerAnomalies();
+
+        boutonExport.disabled = false;
+    } catch (erreur) {
+        if (numero !== numeroRequeteAnomalies) return;
+
+        toutesLesAnomalies = [];
+        boutonExport.disabled = true;
+
+        tableau.innerHTML =
+            `<div class="vide">Impossible de charger les anomalies : ${echapper(erreur.message)}</div>`;
+
+        mettreAJourGraphique([]);
+
+        document.getElementById("etat-graphique").textContent =
+            "Impossible de charger les anomalies.";
+    }
+}
+
+// --------------------------------------------------
+// FILTRES ET TABLEAU DES ANOMALIES
+// --------------------------------------------------
+
+function remplirFiltresTypes() {
+    const select = document.getElementById("filtre-type");
+    const valeurActuelle = select.value;
+
+    const types = [
+        ...new Set(toutesLesAnomalies.map(obtenirTypeAnomalie))
+    ].sort();
+
+    select.innerHTML =
+        '<option value="">Tous les types</option>' +
+        types.map(type =>
+            `<option value="${echapper(type)}">${echapper(type)}</option>`
+        ).join("");
+
+    if (types.includes(valeurActuelle)) {
+        select.value = valeurActuelle;
+    }
+}
+
+function filtrerAnomalies() {
+    const recherche = document.getElementById("recherche-anomalie")
+        .value.trim().toLowerCase();
+
+    const type = document.getElementById("filtre-type").value;
+
+    const filtrees = toutesLesAnomalies.filter(anomalie => {
+        const texte = Object.values(anomalie)
+            .map(valeur => String(valeur ?? ""))
+            .join(" ")
+            .toLowerCase();
+
+        return texte.includes(recherche)
+            && (!type || obtenirTypeAnomalie(anomalie) === type);
+    });
+
+    afficherTableauAnomalies(filtrees);
+}
+
+function afficherTableauAnomalies(anomalies) {
+    const conteneur = document.getElementById("tableau-anomalies");
+
+    if (!anomalies.length) {
+        conteneur.innerHTML =
+            '<div class="vide">Aucune anomalie ne correspond aux critères sélectionnés.</div>';
+        return;
+    }
+
+    const cles = [
+        ...new Set(anomalies.flatMap(anomalie => Object.keys(anomalie)))
+    ];
+
+    conteneur.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Gravité estimée</th>
+                    <th>Export</th>
+                    ${cles.map(cle =>
+                        `<th>${echapper(cle.replaceAll("_", " "))}</th>`
+                    ).join("")}
+                </tr>
+            </thead>
+
+            <tbody>
+                ${anomalies.map(anomalie => {
+                    const gravite = obtenirGravite(anomalie);
+
+                    return `
+                        <tr>
+                            <td>
+                                <span class="badge-gravite ${gravite.classe}">
+                                    ${gravite.libelle}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="action-secondaire"
+                                    onclick="exporterAnomalie(${JSON.stringify(anomalie.id)})">
+                                    CSV
+                                </button>
+                            </td>
+
+                            ${cles.map(cle => {
+                                const valeur = anomalie[cle];
+
+                                return `
+                                    <td>${echapper(
+                                        valeur !== null && typeof valeur === "object"
+                                            ? JSON.stringify(valeur)
+                                            : valeur ?? "—"
+                                    )}</td>`;
+                            }).join("")}
+                        </tr>`;
+                }).join("")}
+            </tbody>
+        </table>
+
+        <p class="description">
+            ${anomalies.length} anomalie(s) affichée(s).
+            Les niveaux de gravité sont des priorités indicatives basées
+            sur le type d’anomalie.
+        </p>`;
+}
+
+// --------------------------------------------------
+// GRAPHIQUE
+// --------------------------------------------------
+
+function mettreAJourGraphique(anomalies) {
+    const canvas = document.getElementById("graphique-anomalies");
+    const etat = document.getElementById("etat-graphique");
+
+    if (typeof Chart === "undefined") {
+        etat.textContent =
+            "Chart.js ne se charge pas. Vérifie ta connexion Internet.";
+        return;
+    }
+
+    if (graphiqueAnomalies) {
+        graphiqueAnomalies.destroy();
+        graphiqueAnomalies = null;
+    }
+
+    if (!anomalies.length) {
+        etat.textContent =
+            "Aucune anomalie à représenter. Lance une analyse pour alimenter le graphique.";
+        return;
+    }
+
+    const repartition = {};
+
+    anomalies.forEach(anomalie => {
+        const type = obtenirTypeAnomalie(anomalie);
+        repartition[type] = (repartition[type] || 0) + 1;
+    });
+
+    etat.textContent =
+        `Répartition des ${anomalies.length} anomalie(s) de la dernière analyse.`;
+
+    graphiqueAnomalies = new Chart(canvas, {
+        type: "doughnut",
+
+        data: {
+            labels: Object.keys(repartition),
+
+            datasets: [{
+                label: "Nombre d'anomalies",
+                data: Object.values(repartition),
+
+                backgroundColor: [
+                    "#7E7BBB",
+                    "#BB7BB8",
+                    "#B8BB7B",
+                    "#7BBB7E",
+                    "#A49FE0",
+                    "#D39ACF",
+                    "#D0D397",
+                    "#A0D5A3"
+                ],
+
+                borderColor: "#F5F3FF",
+                borderWidth: 2
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+}
+
+function creerGraphiqueStatistique(id, type, donnees, options = {}) {
+    const canvas = document.getElementById(id);
+    if (!canvas || typeof Chart === "undefined") return;
+
+    if (graphiquesStatistiques[id]) {
+        graphiquesStatistiques[id].destroy();
+    }
+
+    graphiquesStatistiques[id] = new Chart(canvas, {
+        type,
+        data: {
+            labels: donnees.map(element => element.libelle),
+            datasets: [{
+                label: "Anomalies",
+                data: donnees.map(element => element.nombre),
+                backgroundColor: [
+                    "#7E7BBB", "#BB7BB8", "#B8BB7B", "#7BBB7E",
+                    "#A49FE0", "#D39ACF", "#D0D397", "#A0D5A3"
+                ],
+                borderColor: type === "line" ? "#B8BB7B" : "#F5F3FF",
+                borderWidth: 2,
+                borderRadius: type === "bar" ? 5 : 0,
+                tension: 0.35,
+                pointRadius: type === "line" ? 4 : 0,
+                pointHoverRadius: type === "line" ? 6 : 0,
+                pointBackgroundColor: type === "line" ? "#F5F3FF" : undefined,
+                pointBorderColor: type === "line" ? "#B8BB7B" : undefined,
+                fill: type === "line"
+                    ? { target: "origin", above: "rgba(52, 87, 213, 0.12)" }
+                    : false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: type !== "bar" && type !== "line",
+                    position: "bottom"
+                }
+            },
+            scales: type === "doughnut"
+                ? {}
+                : {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: type === "line" ? 5 : undefined,
+                        ticks: { precision: 0 }
+                    }
+                },
+            ...options
+        }
+    });
+}
+
+function afficherGraphiquesStatistiques(statistiques) {
+    const donneesVides = [];
+    const donnees = statistiques || {};
+
+    creerGraphiqueStatistique(
+        "graphique-gravite",
+        "doughnut",
+        donnees.gravite || donneesVides
+    );
+    creerGraphiqueStatistique(
+        "graphique-type",
+        "bar",
+        donnees.types || donneesVides,
+        { indexAxis: "y", plugins: { legend: { display: false } } }
+    );
+    creerGraphiqueStatistique(
+        "graphique-evolution",
+        "line",
+        (donnees.evolution || []).map(element => ({
+            libelle: `#${element.id}`,
+            nombre: element.nombre_anomalies
+        })),
+        {
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: elements => {
+                            const index = elements[0]?.dataIndex;
+                            const analyse = donnees.evolution?.[index];
+                            return analyse?.date_analyse
+                                ? `Analyse #${analyse.id} — ${analyse.date_analyse}`
+                                : "Analyse";
+                        }
+                    }
+                }
+            }
+        }
+    );
+    creerGraphiqueStatistique(
+        "graphique-champs",
+        "bar",
+        donnees.champs || donneesVides,
+        { plugins: { legend: { display: false } } }
+    );
+    creerGraphiqueStatistique(
+        "graphique-sources",
+        "doughnut",
+        donnees.sources || donneesVides
+    );
+}
+
+// --------------------------------------------------
+// EXPORT CSV
+// --------------------------------------------------
+
+async function exporterCSV() {
+    const bouton = document.getElementById("bouton-export-csv");
+    const message = document.getElementById("message-export");
+
+    if (analyseSelectionnee === null ||
+        analyseSelectionnee === undefined) {
+        message.className = "message erreur";
+        message.textContent = "Aucune analyse sélectionnée.";
+        return;
+    }
+
+    const id = analyseSelectionnee;
+
+    bouton.disabled = true;
+    bouton.textContent = "Export en cours...";
+
+    try {
+        const reponse = await fetch(
+            `${API}/analyses/${encodeURIComponent(id)}/export-csv`
+        );
+
+        if (!reponse.ok) {
+            let detail = `Erreur HTTP ${reponse.status}`;
+
+            try {
+                const donnees = await reponse.json();
+                detail = donnees.detail || detail;
+            } catch (_) {}
+
+            throw new Error(detail);
+        }
+
+        const fichier = await reponse.blob();
+        const url = URL.createObjectURL(fichier);
+        const lien = document.createElement("a");
+
+        lien.href = url;
+        lien.download = `anomalies_analyse_${id}.csv`;
+
+        document.body.appendChild(lien);
+        lien.click();
+        lien.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        message.className = "message succes";
+        message.textContent = "Le fichier CSV a été téléchargé.";
+    } catch (erreur) {
+        message.className = "message erreur";
+        message.textContent =
+            `Échec de l'export : ${erreur.message}`;
+    } finally {
+        bouton.disabled =
+            analyseSelectionnee === null ||
+            analyseSelectionnee === undefined;
+
+        bouton.textContent = "Exporter CSV";
+    }
+}
+
+async function exporterAnomalie(anomalieId) {
+    if (analyseSelectionnee === null ||
+        analyseSelectionnee === undefined ||
+        anomalieId === null ||
+        anomalieId === undefined) {
+        return;
+    }
+
+    try {
+        const reponse = await fetch(
+            `${API}/analyses/${encodeURIComponent(analyseSelectionnee)}` +
+            `/anomalies/${encodeURIComponent(anomalieId)}/export-csv`
+        );
+
+        if (!reponse.ok) {
+            let detail = `Erreur HTTP ${reponse.status}`;
+
+            try {
+                const donnees = await reponse.json();
+                detail = donnees.detail || detail;
+            } catch (_) {}
+
+            throw new Error(detail);
+        }
+
+        const fichier = await reponse.blob();
+        const url = URL.createObjectURL(fichier);
+        const lien = document.createElement("a");
+
+        lien.href = url;
+        lien.download =
+            `anomalie_${anomalieId}_analyse_${analyseSelectionnee}.csv`;
+
+        document.body.appendChild(lien);
+        lien.click();
+        lien.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (erreur) {
+        const message = document.getElementById("message-export");
+        message.className = "message erreur";
+        message.textContent =
+            `Échec de l’export de l’anomalie : ${erreur.message}`;
+    }
+}
+
+// --------------------------------------------------
+// LANCER UNE ANALYSE
+// --------------------------------------------------
+
+async function lancerAnalyse() {
+    const bouton = document.getElementById("bouton-analyse");
+    const message = document.getElementById("message-analyse");
+
+    bouton.disabled = true;
+    bouton.textContent = "Analyse en cours...";
+
+    message.className = "message info";
+    message.textContent = "Analyse des sources en cours...";
+
+    try {
+        await requete("/analyses", { method: "POST" });
+
+        message.className = "message succes";
+        message.textContent = "Analyse terminée avec succès.";
+
+        await chargerHistorique();
+
+        if (historique.length) {
+            await chargerAnomalies(obtenirId(historique[0]));
+        }
+    } catch (erreur) {
+        message.className = "message erreur";
+        message.textContent =
+            `Impossible de lancer l'analyse : ${erreur.message}`;
+    } finally {
+        bouton.disabled = false;
+        bouton.textContent = "Lancer l'analyse";
+    }
+}
+
+// --------------------------------------------------
+// INITIALISATION
+// --------------------------------------------------
+
+async function initialiser() {
+    const etat = document.getElementById("etat-graphique");
+
+    etat.textContent =
+        "Connexion à l'API et chargement des données...";
+
+    if (typeof Chart !== "undefined") {
+        Chart.defaults.color = "#C7C3DF";
+        Chart.defaults.borderColor = "#4A4772";
+    }
+
+    await verifierAPI();
+
+    if (typeof Chart === "undefined") {
+        etat.textContent =
+            "Chart.js n'est pas chargé. Vérifie ta connexion Internet.";
+    }
+
+    activerInteractions3D();
+    await chargerHistorique();
+}
+
+function activerInteractions3D() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+    }
+
+    document.querySelectorAll(".carte, .panneau").forEach(element => {
+        element.addEventListener("pointermove", evenement => {
+            const rectangle = element.getBoundingClientRect();
+            const positionX =
+                (evenement.clientX - rectangle.left) / rectangle.width;
+            const positionY =
+                (evenement.clientY - rectangle.top) / rectangle.height;
+            const rotationY = (positionX - 0.5) * 4;
+            const rotationX = (0.5 - positionY) * 4;
+
+            element.style.transform =
+                `perspective(900px) rotateX(${rotationX}deg) ` +
+                `rotateY(${rotationY}deg) translateY(-3px)`;
+        });
+
+        element.addEventListener("pointerleave", () => {
+            element.style.transform = "";
+        });
+    });
+}
+
+initialiser();
+</script>
+</body>
+</html>

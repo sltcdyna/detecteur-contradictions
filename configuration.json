@@ -1,0 +1,53 @@
+
+{
+    "cle_identification": "identifiant",
+    "champs_a_comparer": [
+        "statut",
+        "service",
+        "email"
+    ],
+    "regles": {
+        "statut": {
+            "mode": "contradiction_si_different",
+            "description": "Les statuts doivent être identiques entre les deux systèmes."
+        },
+        "service": {
+            "mode": "difference_a_verifier",
+            "description": "Un changement de service doit être vérifié."
+        },
+        "email": {
+            "mode": "contradiction_si_different",
+            "description": "Les adresses email doivent correspondre."
+        }
+    },
+    "sources": [
+        {
+            "nom": "Référentiel RH",
+            "fichier": "donnees/demo/referentiel_rh.csv"
+        },
+        {
+            "nom": "Paie",
+            "fichier": "donnees/demo/paie.csv"
+        },
+        {
+            "nom": "Gestion des accès",
+            "fichier": "donnees/demo/gestion_acces.csv"
+        },
+        {
+            "nom": "Annuaire IT",
+            "fichier": "donnees/demo/annuaire_it.csv"
+        },
+        {
+            "nom": "Gestion des projets",
+            "fichier": "donnees/demo/gestion_projets.csv"
+        },
+        {
+            "nom": "Avantages salariés",
+            "fichier": "donnees/demo/avantages.csv"
+        },
+        {
+            "nom": "Formation",
+            "fichier": "donnees/demo/formation.csv"
+        }
+    ]
+}

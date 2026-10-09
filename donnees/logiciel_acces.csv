@@ -1,0 +1,5 @@
+identifiant,statut,service,email
+E001,Actif,Informatique,amina@example.com
+E002,Inactif,Finance,samir@example.com
+E003,Inactif,Informatique,ines@example.com
+E005,Actif,Informatique,nadia@example.com
